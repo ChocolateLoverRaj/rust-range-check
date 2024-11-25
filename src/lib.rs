@@ -105,11 +105,10 @@
 //! assert!(Clock::new(61, 0).is_err());
 //! ```
 
-
 #![crate_name = "range_check"]
 #![crate_type = "rlib"]
 #![crate_type = "dylib"]
-
+#![no_std]
 #![warn(missing_copy_implementations)]
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]

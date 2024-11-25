@@ -1,14 +1,12 @@
-use std::error::Error as ErrorTrait;
-use std::ops::RangeBounds;
-use std::fmt;
+use core::error::Error as ErrorTrait;
+use core::fmt;
+use core::ops::RangeBounds;
 
-use bounds::{Bounds, copy_bound};
-
+use bounds::{copy_bound, Bounds};
 
 /// Trait that provides early returns for failed range checks using the
 /// `Result` type.
 pub trait Check<R: RangeBounds<Self>>: Sized + PartialOrd + Copy {
-
     /// Checks whether `self` is within the given range. If it is, re-returns
     /// `self`. Otherwise, returns an `Error` that contains both the value and
     /// the range.
@@ -25,29 +23,30 @@ pub trait Check<R: RangeBounds<Self>>: Sized + PartialOrd + Copy {
 }
 
 impl<T, R> Check<R> for T
-where R: RangeBounds<T>,
-      T: PartialOrd + Copy,
+where
+    R: RangeBounds<T>,
+    T: PartialOrd + Copy,
 {
     fn check_range(self, range: R) -> Result<Self, OutOfRangeError<Self>> {
         if range.contains(&self) {
             Ok(self)
-        }
-        else {
+        } else {
             let bounds = Bounds {
                 lower: copy_bound(range.start_bound()),
                 upper: copy_bound(range.end_bound()),
             };
 
-            Err(OutOfRangeError { allowed_range: bounds, outside_value: self })
+            Err(OutOfRangeError {
+                allowed_range: bounds,
+                outside_value: self,
+            })
         }
     }
 }
 
-
 /// The error that gets thrown when a `check_range` fails.
 #[derive(PartialEq, Debug, Clone)]
 pub struct OutOfRangeError<T> {
-
     /// The bounds of the range that was searched.
     pub allowed_range: Bounds<T>,
 
@@ -63,13 +62,15 @@ impl<T: fmt::Debug> ErrorTrait for OutOfRangeError<T> {
 
 impl<T: fmt::Debug> fmt::Display for OutOfRangeError<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "value ({:?}) outside of range ({})",
-            self.outside_value, self.allowed_range)
+        write!(
+            f,
+            "value ({:?}) outside of range ({})",
+            self.outside_value, self.allowed_range
+        )
     }
 }
 
 impl<T> OutOfRangeError<T> {
-
     /// Converts this error to an error with the same values as another type.
     /// The other type must be `From`-convertible from this one.
     ///
